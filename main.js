@@ -9,8 +9,8 @@ let serialDevices = {};
 createWindow = async () => {
   let platform = process.platform;
   appWin = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 400,
+    height: 400,
     title: "Laboratory Blutooth Data Logger",
     resizable: true,
     webPreferences: {
@@ -20,6 +20,8 @@ createWindow = async () => {
     },
     address: 'Test'
   });
+
+  appWin.maximize();
 
 
   if (platform == "darwin") {
@@ -173,6 +175,8 @@ openSerialWindow = (device) => {
       nodeIntegration: true
     },
   });
+
+  serialWin.maximize();
 
   serialDevices[device.id] = ({ window: serialWin.id, device: device, serialLog: [] });
 
