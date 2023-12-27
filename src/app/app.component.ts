@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { BluetoothService } from './services/bluetooth.service';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +8,8 @@ import { BluetoothService } from './services/bluetooth.service';
 export class AppComponent {
   title = 'bluetooth-serial';
   electron: any;
-  platform: string = '';
 
-  constructor(private bluetoothService: BluetoothService) {
+  constructor() {
     this.electron = (<any>window).require('electron');
-    this.platform = bluetoothService.getOsAsObservable();
   }
 }

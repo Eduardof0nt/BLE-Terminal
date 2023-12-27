@@ -1,10 +1,21 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const { exec } = require("child_process");
 const sudo = require('sudo-prompt');
+const noble = require("@abandonware/noble");
 
 
 let appWin;
 let serialDevices = {};
+let bluetoothDevices = {};
+function deviceDiscovered(peripheral) {
+  try {
+    bluetoothDevices[peripheral['id']] = peripheral;
+    // console.log(peripheral);
+  } catch (error) { }
+  //console.log(aux_this.bluetoothDevices);
+}
+noble.on('discover', deviceDiscovered);
+noble.startScanning();
 
 createWindow = async () => {
   let platform = process.platform;
@@ -72,7 +83,6 @@ createWindow = async () => {
 
   }
 
-
   else if (platform == "linux") {
     await new Promise((resolve, reject) => {
       exec("bluetoothd -v", (error, stdout, stderr) => {
@@ -126,6 +136,97 @@ createWindow = async () => {
 
   // Main process to render comunication
 
+
+  // BLE
+  ipcMain.on('reset-ble-devices', (event) => {
+    noble.stopScanning();
+    bluetoothDevices = {};
+    noble.startScanning();
+    event.returnValue = true;
+  });
+
+  ipcMain.on('get-ble-devices', (event) => {
+    let devices = {};
+    for (let device in bluetoothDevices) {
+      if (bluetoothDevices[bluetoothDevices[device].id]) {
+        devices[bluetoothDevices[device].id] = {
+          name: bluetoothDevices[device].advertisement.localName || 'No Name',
+          id: bluetoothDevices[device].id,
+          rssi: bluetoothDevices[device].rssi,
+          // peripheral: bluetoothDevices[bluetoothDevices[device].id],
+          loading: bluetoothDevices[bluetoothDevices[device].id].loading,
+          connected: bluetoothDevices[bluetoothDevices[device].id].connected,
+          characteristics: bluetoothDevices[bluetoothDevices[device].id].characteristics,
+          serial: bluetoothDevices[bluetoothDevices[device].id].serial,
+        };
+      }
+    }
+    event.returnValue = devices;
+  });
+
+  ipcMain.on('connect-to-ble-device', async (event) => {
+    // TODO
+    this.devices[id].loading = true;
+    let disconnect = true;
+    setTimeout(() => {
+      if (disconnect) {
+        try {
+          this.failedDevice = this.devices[id].name;
+          try {
+            let modal = $('.modal');
+            // modal.modal({ backdrop: 'static', keyboard: false });
+            modal.modal('close');
+          } catch (error) { }
+          let modal = $('.modal');
+          // modal.modal({ backdrop: 'static', keyboard: false });
+          modal.modal('show');
+          this.devices[id].peripheral.disconnect();
+        } catch (error) {
+          console.error(error);
+        }
+        this.devices[id].loading = false;
+        this.devices[id].connected = false;
+      }
+    }, 30000);
+    try {
+      await this.devices[id].peripheral.connectAsync();
+      disconnect = false;
+      let aux_this = this;
+      const disconnectCallback = () => {
+        aux_this.devices[id].loading = false;
+        aux_this.devices[id].connected = false;
+      };
+      this.devices[id].peripheral.once('disconnect', disconnectCallback);
+      this.devices[id].loading = false;
+      this.devices[id].connected = true;
+      const { characteristics } = await this.devices[
+        id
+      ].peripheral.discoverAllServicesAndCharacteristicsAsync();
+      this.devices[id].characteristics = characteristics;
+      this.peripheralConnected(this.devices[id]);
+      for (let i = 0; i < characteristics.length; i++) {
+        if (characteristics[i].properties.includes('notify')) {
+          characteristics[i].notify(true);
+          characteristics[i].on('read', (data) => {
+            this.appComponent.electron.ipcRenderer.sendSync(
+              'serial-device-read',
+              {
+                id: id,
+                data: data.toString(),
+              }
+            );
+          });
+        }
+      }
+    } catch (error) {
+      this.devices[id].peripheral.disconnect();
+    }
+    event.returnValue = true;
+  });
+
+
+  // Serial
+
   ipcMain.on('get-serial-devices', (event) => {
     event.returnValue = serialDevices;
   });
@@ -159,6 +260,9 @@ createWindow = async () => {
     appWin.webContents.send("serial-write", data);
     event.returnValue = true;
   });
+
+
+  // Websockets
 
   appWin.loadURL(`file://${__dirname}/dist/index.html`);
 

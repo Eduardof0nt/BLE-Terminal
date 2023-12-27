@@ -6,9 +6,7 @@ import { RequiredModulesService } from './required-modules.service';
   providedIn: 'root',
 })
 export class BluetoothService {
-  getOsAsObservable = this.requiredModulesService.os.platform;
-  // serial = this.requiredModulesService.serial;
-  noble = this.requiredModulesService.ble;
+  // noble = this.requiredModulesService.ble;
   bluetoothDevices: any = {};
 
   constructor(private requiredModulesService: RequiredModulesService) {
@@ -20,8 +18,8 @@ export class BluetoothService {
       } catch (error) {}
       //console.log(aux_this.bluetoothDevices);
     }
-    this.noble.on('discover', deviceDiscovered);
-    this.noble.startScanning();
+    // this.noble.on('discover', deviceDiscovered);
+    // this.noble.startScanning();
   }
 
   // async callCLICommand(command: string) {
@@ -44,47 +42,8 @@ export class BluetoothService {
   // }
 
   resetBluetoothDeviceList() {
-    this.noble.stopScanning();
-    this.bluetoothDevices = {};
-    this.noble.startScanning();
-  }
-
-  async connectToDevice(id: string) {
-    // this.bluetoothDevices[id].connect();
-    // let platform = this.getOsAsObservable();
-    // if (platform === 'darwin') {
-    //   console.log(`blueutil --unpair ${address}`);
-    //   return new Promise((resolve, reject) => {
-    //     this.callCLICommand(`blueutil --unpair ${address}`)
-    //       .then(() => {
-    //         console.log(`blueutil --pair ${address}`);
-    //         return this.callCLICommand(`sleep 2 && blueutil --pair ${address}`);
-    //       })
-    //       .then(() => {
-    //         console.log(`blueutil --connect ${address}`);
-    //         return this.callCLICommand(
-    //           `sleep 2 && blueutil --connect ${address}`
-    //         );
-    //       })
-    //       .then(() => {
-    //         resolve({ done: true });
-    //         return 'done';
-    //       })
-    //       .catch(() => {
-    //         reject({ done: false });
-    //         return 'done';
-    //       });
-    //   });
-    // }
-    // //TODO
-    // else if (platform == 'linux') {
-    // }
-    // //TODO
-    // else if (platform == 'win32') {
-    // } else {
-    //   return new Promise((resolve, reject) => {
-    //     reject({ done: false });
-    //   });
-    // }
+    // this.noble.stopScanning();
+    // this.bluetoothDevices = {};
+    // this.noble.startScanning();
   }
 }

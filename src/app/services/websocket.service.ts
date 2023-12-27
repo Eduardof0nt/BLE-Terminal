@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { RequiredModulesService } from './services/required-modules.service';
+import { RequiredModulesService } from './required-modules.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebsocketService {
   ws = this.requiredModulesService.ws;
-  portScanner = this.requiredModulesService.portscanner;
 
   constructor(private requiredModulesService: RequiredModulesService) {}
 

@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AppComponent } from 'src/app/app.component';
 import { ChangeDetectorRef } from '@angular/core';
-import { WebsocketService } from 'src/app/websocket.service';
+import { WebsocketService } from 'src/app/services/websocket.service';
 import { Debounce } from 'angular-debounce-throttle';
 declare var $: any;
 
