@@ -1,0 +1,9 @@
+.loadingContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .spinner-border {
+        width:30%;
+        height: 30%;
+    }
+}

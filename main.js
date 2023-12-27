@@ -20,6 +20,11 @@ createWindow = async () => {
     },
     address: 'Test'
   });
+  appWin.setMenu(null);
+
+  appWin.webContents.openDevTools();
+
+  appWin.loadURL(`file://${__dirname}/dist/index.html#/loading`);
 
   appWin.maximize();
 
@@ -66,11 +71,15 @@ createWindow = async () => {
   }
 
 
-  else if (platform == "linux" && false) {
+  else if (platform == "linux") {
     await new Promise((resolve, reject) => {
-      sudo.exec("apt-get install bluetooth bluez libbluetooth-dev libudev-dev", (error, stdout, stderr) => {
+      sudo.exec("apt-get install -y bluetooth bluez libbluetooth-dev libudev-dev", {
+        name: 'BLE Terminal',
+        //icns: '/path/to/icns/file', // (optional)
+      }, (error, stdout, stderr) => {
         if (error) {
           console.log(`error: ${error.message}`);
+          app.quit();
           reject()
         }
         else {
@@ -142,11 +151,6 @@ createWindow = async () => {
   });
 
   appWin.loadURL(`file://${__dirname}/dist/index.html`);
-
-
-  appWin.setMenu(null);
-
-  appWin.webContents.openDevTools();
 
   appWin.on("closed", () => {
     app.quit();

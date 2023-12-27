@@ -9,9 +9,10 @@ import { BluetoothService } from './services/bluetooth.service';
 import { HomeComponent } from './pages/home/home.component';
 import { SerialComponent } from './pages/serial/serial.component';
 import { FormsModule } from '@angular/forms';
+import { LoadingComponent } from './pages/loading/loading.component';
 
 @NgModule({
-  declarations: [AppComponent, HomeComponent, SerialComponent],
+  declarations: [AppComponent, HomeComponent, SerialComponent, LoadingComponent],
   imports: [BrowserModule, AppRoutingModule, FormsModule],
   providers: [RequiredModulesService, FileService, BluetoothService],
   bootstrap: [AppComponent],
