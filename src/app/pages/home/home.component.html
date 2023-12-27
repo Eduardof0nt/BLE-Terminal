@@ -1,0 +1,83 @@
+<div class="home-container">
+  <div class="top-container">
+    <button type="button" class="btn btn-light" (click)="resetDeviceList()">
+      <img src="assets/images/refresh-cw.svg" />
+    </button>
+  </div>
+  <div class="table-container">
+    <table>
+      <tr>
+        <th>Number</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Rssi</th>
+        <th></th>
+      </tr>
+      <tr *ngFor="let device of getObjectKeys(devices); let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ devices[device].name }}</td>
+        <td>{{ devices[device].id }}</td>
+        <td>{{ devices[device].rssi }}</td>
+        <td
+          style="
+            display: flex;
+            width: 150px;
+            align-items: center;
+            justify-content: flex-start;
+          "
+        >
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="devices[device].loading"
+            *ngIf="!devices[device].connected && !devices[device].serial"
+            (click)="connectToDevice(devices[device].id)"
+          >
+            Connect
+          </button>
+          <button
+            type="button"
+            class="btn btn-warning"
+            *ngIf="devices[device].connected"
+            (click)="disconnectDevice(devices[device].id)"
+          >
+            Disconnect
+          </button>
+          <div
+            *ngIf="devices[device].loading"
+            class="spinner-border"
+            role="status"
+            style="margin-left: 5px"
+          >
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div class="bottom-container"></div>
+</div>
+
+<div class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Connection to device failed</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>The connection to {{ failedDevice }} has failed.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
