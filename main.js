@@ -8,6 +8,7 @@ let serialDevices = {};
 
 createWindow = async () => {
   let platform = process.platform;
+
   appWin = new BrowserWindow({
     width: 400,
     height: 400,
@@ -20,6 +21,7 @@ createWindow = async () => {
     },
     address: 'Test'
   });
+
   appWin.setMenu(null);
 
   appWin.webContents.openDevTools();
@@ -76,18 +78,18 @@ createWindow = async () => {
       exec("bluetoothd -v", (error, stdout, stderr) => {
         if (error) {
           console.error(`error: ${error.message}`);
-          // sudo.exec("apt-get install -y bluetooth bluez libbluetooth-dev libudev-dev", {
-          //   name: 'BLE Terminal',
-          //   //icns: '/path/to/icns/file', // (optional)
-          // }, (error, stdout, stderr) => {
-          //   if (error) {
-          //     app.quit();
-          //     reject()
-          //   }
-          //   else {
-          //     resolve();
-          //   }
-          // });
+          sudo.exec("apt-get install -y bluetooth bluez libbluetooth-dev libudev-dev", {
+            name: 'BLE Terminal',
+            //icns: '/path/to/icns/file', // (optional)
+          }, (error, stdout, stderr) => {
+            if (error) {
+              app.quit();
+              reject()
+            }
+            else {
+              resolve();
+            }
+          });
         }
         else {
           console.log(stdout);
