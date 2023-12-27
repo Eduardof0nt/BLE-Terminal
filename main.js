@@ -73,16 +73,24 @@ createWindow = async () => {
 
   else if (platform == "linux") {
     await new Promise((resolve, reject) => {
-      sudo.exec("apt-get install -y bluetooth bluez libbluetooth-dev libudev-dev", {
-        name: 'BLE Terminal',
-        //icns: '/path/to/icns/file', // (optional)
-      }, (error, stdout, stderr) => {
+      exec("bluetoothd -v", (error, stdout, stderr) => {
         if (error) {
-          console.log(`error: ${error.message}`);
-          app.quit();
-          reject()
+          console.error(`error: ${error.message}`);
+          // sudo.exec("apt-get install -y bluetooth bluez libbluetooth-dev libudev-dev", {
+          //   name: 'BLE Terminal',
+          //   //icns: '/path/to/icns/file', // (optional)
+          // }, (error, stdout, stderr) => {
+          //   if (error) {
+          //     app.quit();
+          //     reject()
+          //   }
+          //   else {
+          //     resolve();
+          //   }
+          // });
         }
         else {
+          console.log(stdout);
           resolve();
         }
       });
