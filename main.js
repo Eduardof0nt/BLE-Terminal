@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const { exec } = require("child_process");
 const sudo = require('sudo-prompt');
 const noble = require("@abandonware/noble");
+const ws = require('ws');
+const { checkPortStatus } = require("portscanner");
 
 
 let appWin;
@@ -9,13 +11,77 @@ let serialDevices = {};
 let bluetoothDevices = {};
 function deviceDiscovered(peripheral) {
   try {
-    bluetoothDevices[peripheral['id']] = peripheral;
     // console.log(peripheral);
+    if (bluetoothDevices[peripheral['id']]) {
+      bluetoothDevices[peripheral['id']] = { ...peripheral, peripheral: bluetoothDevices[peripheral['id']].peripheral, loading: bluetoothDevices[peripheral['id']].loading };
+    }
+    else {
+      bluetoothDevices[peripheral['id']] = { ...peripheral, peripheral: peripheral, loading: false };
+    }
+
   } catch (error) { }
   //console.log(aux_this.bluetoothDevices);
 }
 noble.on('discover', deviceDiscovered);
 noble.startScanning();
+
+
+
+
+// Web Sockets
+
+async function checkWebSocketPort(port) {
+  let websocket = new ws.WebSocket('ws://localhost:' + port);
+  let open = true;
+
+  await new Promise((res, rej) => {
+    websocket.on('open', () => {
+      console.log('open');
+      open = false;
+      res();
+    });
+
+    websocket.on('error', (error) => {
+      if (error.code == 'ECONNREFUSED') {
+        open = true;
+      } else if (error.code == 'WS_ERR_EXPECTED_FIN') {
+        open = false;
+      }
+      res();
+      //console.log(JSON.stringify(error));
+    });
+  });
+
+  return open;
+}
+
+function newWebSocket(port) {
+  return new ws.WebSocketServer({
+    port: port,
+    perMessageDeflate: {
+      zlibDeflateOptions: {
+        // See zlib defaults.
+        chunkSize: 1024,
+        memLevel: 7,
+        level: 3,
+      },
+      zlibInflateOptions: {
+        chunkSize: 10 * 1024,
+      },
+      // Other options settable:
+      clientNoContextTakeover: true, // Defaults to negotiated value.
+      serverNoContextTakeover: true, // Defaults to negotiated value.
+      serverMaxWindowBits: 10, // Defaults to negotiated value.
+      // Below options specified as default values.
+      concurrencyLimit: 10, // Limits zlib concurrency for perf.
+      threshold: 1024, // Size (in bytes) below which messages
+      // should not be compressed if context takeover is disabled.
+    },
+  });
+}
+
+
+//Create window
 
 createWindow = async () => {
   let platform = process.platform;
@@ -102,7 +168,7 @@ createWindow = async () => {
           });
         }
         else {
-          console.log(stdout);
+          // console.log(stdout);
           resolve();
         }
       });
@@ -153,73 +219,93 @@ createWindow = async () => {
           name: bluetoothDevices[device].advertisement.localName || 'No Name',
           id: bluetoothDevices[device].id,
           rssi: bluetoothDevices[device].rssi,
-          // peripheral: bluetoothDevices[bluetoothDevices[device].id],
-          loading: bluetoothDevices[bluetoothDevices[device].id].loading,
-          connected: bluetoothDevices[bluetoothDevices[device].id].connected,
-          characteristics: bluetoothDevices[bluetoothDevices[device].id].characteristics,
-          serial: bluetoothDevices[bluetoothDevices[device].id].serial,
+          loading: bluetoothDevices[device].loading,
+          connected: bluetoothDevices[device].connected,
+          // serial: bluetoothDevices[device].serial,
         };
       }
     }
     event.returnValue = devices;
   });
 
-  ipcMain.on('connect-to-ble-device', async (event) => {
-    // TODO
-    this.devices[id].loading = true;
+  ipcMain.on('connect-to-ble-device', async (event, id) => {
+    bluetoothDevices[id].loading = true;
+    appWin.webContents.send('set-device-loading', id, true);
     let disconnect = true;
     setTimeout(() => {
       if (disconnect) {
         try {
-          this.failedDevice = this.devices[id].name;
-          try {
-            let modal = $('.modal');
-            // modal.modal({ backdrop: 'static', keyboard: false });
-            modal.modal('close');
-          } catch (error) { }
-          let modal = $('.modal');
-          // modal.modal({ backdrop: 'static', keyboard: false });
-          modal.modal('show');
-          this.devices[id].peripheral.disconnect();
+          failedDevice = bluetoothDevices[id].name;
+          appWin.webContents.send('cancel-connect', failedDevice);
+          bluetoothDevices[id].peripheral.disconnect();
         } catch (error) {
           console.error(error);
         }
-        this.devices[id].loading = false;
-        this.devices[id].connected = false;
+        bluetoothDevices[id].loading = false;
+        bluetoothDevices[id].connected = false;
       }
     }, 30000);
     try {
-      await this.devices[id].peripheral.connectAsync();
+      await bluetoothDevices[id].peripheral.connectAsync();
       disconnect = false;
-      let aux_this = this;
+      // appWin.webContents.send('set-device-loading', { id: id,loading:false });
       const disconnectCallback = () => {
-        aux_this.devices[id].loading = false;
-        aux_this.devices[id].connected = false;
+        bluetoothDevices[id].loading = false;
+        appWin.webContents.send('set-device-loading', id, false);
+        bluetoothDevices[id].connected = false;
       };
-      this.devices[id].peripheral.once('disconnect', disconnectCallback);
-      this.devices[id].loading = false;
-      this.devices[id].connected = true;
-      const { characteristics } = await this.devices[
+      bluetoothDevices[id].peripheral.once('disconnect', disconnectCallback);
+      bluetoothDevices[id].loading = false;
+      appWin.webContents.send('set-device-loading', id, false);
+      bluetoothDevices[id].connected = true;
+      let { characteristics } = await bluetoothDevices[
         id
       ].peripheral.discoverAllServicesAndCharacteristicsAsync();
-      this.devices[id].characteristics = characteristics;
-      this.peripheralConnected(this.devices[id]);
+      bluetoothDevices[id].characteristics = characteristics;
+      let hasWrite = false;
+      let hasRead = false;
       for (let i = 0; i < characteristics.length; i++) {
-        if (characteristics[i].properties.includes('notify')) {
-          characteristics[i].notify(true);
-          characteristics[i].on('read', (data) => {
-            this.appComponent.electron.ipcRenderer.sendSync(
-              'serial-device-read',
-              {
-                id: id,
-                data: data.toString(),
-              }
-            );
-          });
+        if (characteristics[i].properties.includes('write')) {
+          hasWrite = true;
         }
       }
+      for (let i = 0; i < characteristics.length; i++) {
+        if (characteristics[i].properties.includes('notify')) {
+          hasRead = true;
+        }
+      }
+      if (hasRead && hasWrite) {
+        openSerialWindow(bluetoothDevices[id]);
+        for (let i = 0; i < characteristics.length; i++) {
+          if (characteristics[i].properties.includes('notify')) {
+            characteristics[i].notify(true);
+            characteristics[i].on('read', (data) => {
+              const textDecoder = new TextDecoder();
+              for (let row of textDecoder.decode(data).split('\r\n')) {
+                if (row != "") {
+                  serialDevices[id].serialLog.push({ data: row, timestamp: Date.now() });
+                }
+              }
+              BrowserWindow.fromId(serialDevices[id].window).webContents.send('update-data', serialDevices[id].serialLog);
+              // this.appComponent.electron.ipcRenderer.sendSync(
+              //   'serial-device-read',
+              //   {
+              //     id: id,
+              //     data: data.toString(),
+              //   }
+              // );
+            });
+          }
+        }
+      }
+      else {
+        bluetoothDevices[id].peripheral.disconnect();
+      }
     } catch (error) {
-      this.devices[id].peripheral.disconnect();
+      console.error(error);
+      bluetoothDevices[id].loading = false;
+      appWin.webContents.send('set-device-loading', id, false);
+      bluetoothDevices[id].peripheral.disconnect();
     }
     event.returnValue = true;
   });
@@ -227,21 +313,22 @@ createWindow = async () => {
 
   // Serial
 
-  ipcMain.on('get-serial-devices', (event) => {
-    event.returnValue = serialDevices;
-  });
+  // ipcMain.on('get-serial-devices', (event) => {
+  //   event.returnValue = serialDevices;
+  // });
 
-  ipcMain.on('begin-serial-device', (event, device) => {
-    openSerialWindow(device);
-    event.returnValue = true;
-  });
+  // ipcMain.on('begin-serial-device', (event, device) => {
+  //   openSerialWindow(device);
+  //   event.returnValue = true;
+  // });
 
   ipcMain.on('remove-serial-device', (event, id) => {
     try {
+      bluetoothDevices[id].peripheral.disconnect()
       let serialWin = BrowserWindow.fromId(serialDevices[id].window);
       serialWin.close();
     } catch (error) {
-
+      console.error(error);
     }
     event.returnValue = true;
   })
@@ -256,13 +343,97 @@ createWindow = async () => {
     event.returnValue = true;
   });
 
-  ipcMain.on('serial-device-write', (event, data) => {
-    appWin.webContents.send("serial-write", data);
+  function serialDeviceWrite(id, command) {
+    const utf8EncodeText = new TextEncoder();
+    for (let i = 0; i < bluetoothDevices[id].characteristics.length; i++) {
+      if (bluetoothDevices[id].characteristics[i].properties.includes('write')) {
+        bluetoothDevices[id].characteristics[i].write(
+          utf8EncodeText.encode(command),
+          false
+        );
+      }
+    }
+  }
+
+  ipcMain.on('serial-device-write', (event, id, command) => {
+    serialDeviceWrite(id, command);
     event.returnValue = true;
   });
 
 
   // Websockets
+
+  ipcMain.on('init-ws', (event, id, port, wsAuth, wsUser, wsPassword) => {
+    let webSocketServer = newWebSocket(port);
+    // console.log(webSocketServer);
+    serialDevices[id].wsServer = webSocketServer;
+    webSocketServer.on(
+      'connection',
+      function connection(ws, request) {
+        let user = request.headers.user;
+        let password = request.headers.password;
+        if (
+          !serialDevices[id].wsClient &&
+          (!wsAuth ||
+            (wsAuth &&
+              wsUser == user &&
+              wsPassword == password))
+        ) {
+          ws.on('error', console.error);
+          // aux_this.ws = ws;
+          serialDevices[id].ws = ws;
+          serialDevices[id].wsClient = request.client;
+          request.client.on('close', function () {
+            try {
+              serialDevices[id].wsClient = undefined;
+            } catch (error) {
+              console.error(error);
+            }
+          });
+
+          ws.on('message', function message(data) {
+            let dataString = new TextDecoder().decode(data);
+            serialDeviceWrite(id, dataString);
+          });
+        } else {
+          request.client.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+          request.client.destroy();
+          //aux_this.wsClientConnected = false;
+        }
+
+        // ws.send('something');
+      }
+    );
+    event.returnValue = true;
+  });
+
+  ipcMain.on('close-ws', (event, id) => {
+    serialDevices[id].ws = undefined;
+    serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+    serialDevices[id].wsClient.destroy();
+    serialDevices[id].wsServer.close();
+    serialDevices[id].wsServer = undefined;
+    serialDevices[id].wsClient = undefined;
+    event.returnValue = true;
+  });
+
+  ipcMain.on('send-ws', (event, id, command, sent) => {
+    try {
+      serialDevices[id].ws.send(
+        JSON.stringify({
+          sent: sent,
+          command: command,
+        })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+    event.returnValue = true;
+  });
+
+  ipcMain.on('check-port', async (event, port) => {
+    event.returnValue = await checkWebSocketPort(port);
+  });
 
   appWin.loadURL(`file://${__dirname}/dist/index.html`);
 
@@ -285,7 +456,7 @@ openSerialWindow = (device) => {
   let serialWin = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: `${device.name} Serial Monitor`,
+    title: `${device.advertisement.localName} Serial Monitor`,
     resizable: true,
     webPreferences: {
       // devTools: false,
@@ -296,10 +467,10 @@ openSerialWindow = (device) => {
 
   serialWin.maximize();
 
-  serialDevices[device.id] = ({ window: serialWin.id, device: device, serialLog: [] });
+  serialDevices[device.id] = ({ window: serialWin.id, device: { id: device.id, name: device.advertisement.localName }, serialLog: [], ws: undefined, wsServer: undefined, wsClient: undefined });
 
 
-  serialWin.loadURL(`file://${__dirname}/dist/index.html#/serial/${encodeURIComponent(JSON.stringify(device))}`);
+  serialWin.loadURL(`file://${__dirname}/dist/index.html#/serial/${encodeURIComponent(JSON.stringify({ id: device.id, name: device.advertisement.localName }))}`);
 
 
   serialWin.setMenu(null);

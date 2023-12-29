@@ -95,9 +95,7 @@
             step="1"
             (change)="checkPort()"
           />
-          <!-- <div class="spinner-border" role="status" *ngIf="checkingPort">
-            <span class="sr-only">Loading...</span>
-          </div> -->
+          <div class="spinner-border" role="status" *ngIf="checkingPort"></div>
         </div>
         <div class="port-error">
           <div *ngIf="portError">The selected port is in use!</div>
@@ -130,7 +128,7 @@
           class="btn btn-primary"
           (click)="openWebSocket()"
           data-bs-dismiss="modal"
-          [disabled]="portError"
+          [disabled]="portError || checkingPort"
         >
           Open
         </button>

@@ -39,9 +39,9 @@ export class RequiredModulesService {
   //   return this.browserWindow.NODE_BLE;
   // }
 
-  get ws(): any {
-    return this.browserWindow.WEB_SOCKET;
-  }
+  // get ws(): any {
+  //   return this.browserWindow.WEB_SOCKET;
+  // }
 
   // get portscanner(): any {
   //   return this.browserWindow.PORT_SCANNER;

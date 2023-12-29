@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { AppComponent } from 'src/app/app.component';
 declare var $: any;
 
@@ -8,23 +8,45 @@ declare var $: any;
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent {
-  devices: any = {};
-  connectedDevices: any[] = [];
+  @Input() devices: any = {};
   keepReloading = true;
   failedDevice: string = '';
-  constructor(private appComponent: AppComponent) {
+  constructor(
+    private appComponent: AppComponent,
+    private cdr: ChangeDetectorRef
+  ) {
+    let aux_this = this;
     this.pool();
     this.appComponent.electron.ipcRenderer.on(
       'serial-disconnect',
       async (event: any, id: string) => {
-        this.disconnectDevice(id);
+        aux_this.disconnectDevice(id);
         return true;
       }
     );
+
     this.appComponent.electron.ipcRenderer.on(
-      'serial-write',
-      async (event: any, data: any) => {
-        this.sendToDevice(data.id, data.command);
+      'cancel-connect',
+      async (event: any, failedDevice: any) => {
+        try {
+          aux_this.failedDevice = failedDevice;
+          let modal = $('.modal');
+          modal.modal('close');
+        } catch (error) {}
+        let modal = $('.modal');
+        modal.modal('show');
+        return true;
+      }
+    );
+
+    this.appComponent.electron.ipcRenderer.on(
+      'set-device-loading',
+      (event: any, id: string, loading: boolean) => {
+        console.log(loading);
+        aux_this.devices[id].loading = loading;
+        // aux_this.cdr.markForCheck();
+        aux_this.cdr.detectChanges();
+        console.log(aux_this.devices[id]);
         return true;
       }
     );
@@ -41,45 +63,29 @@ export class HomeComponent {
         aux_this.getDevices();
         aux_this.pool();
       }
-    }, 30);
+    }, 100);
   }
 
-  async getDevices() {
-    // let devices: any = this.bluetoothService.bluetoothDevices;
-    // for (let device in devices) {
-    //   if (this.devices[devices[device].id]) {
-    //     this.devices[devices[device].id] = {
-    //       name: devices[device].advertisement.localName || 'No Name',
-    //       id: devices[device].id,
-    //       rssi: devices[device].rssi,
-    //       peripheral: this.devices[devices[device].id].peripheral,
-    //       loading: this.devices[devices[device].id].loading,
-    //       connected: this.devices[devices[device].id].connected,
-    //       characteristics: this.devices[devices[device].id].characteristics,
-    //       serial: this.devices[devices[device].id].serial,
-    //     };
-    //   } else {
-    //     this.devices[devices[device].id] = {
-    //       name: devices[device].advertisement.localName || 'No Name',
-    //       id: devices[device].id,
-    //       peripheral: devices[device],
-    //       rssi: devices[device].rssi,
-    //       characteristics: undefined,
-    //       loading: false,
-    //       connected: devices[device].state == 'connected',
-    //       serial: false,
-    //     };
-    //   }
-    // }
-    this.devices = this.appComponent.electron.ipcRenderer.sendSync(
+  getDevices() {
+    let aux_this = this;
+    let devices = this.appComponent.electron.ipcRenderer.sendSync(
       'get-ble-devices',
       {}
     );
+    for (let device of Object.keys(devices)) {
+      aux_this.devices[device] = {
+        name: devices[device].name,
+        id: devices[device].id,
+        rssi: devices[device].rssi,
+        loading: devices[device].loading,
+        connected: devices[device].connected,
+      };
+    }
+    this.cdr.detectChanges();
   }
 
   resetDeviceList() {
     this.devices = {};
-    // this.bluetoothService.resetBluetoothDeviceList();
     this.devices = this.appComponent.electron.ipcRenderer.sendSync(
       'reset-ble-devices',
       {}
@@ -88,86 +94,14 @@ export class HomeComponent {
   }
 
   async connectToDevice(id: string) {
-    //TODO
-    // this.devices[id].loading = true;
-    // let disconnect = true;
-    // setTimeout(() => {
-    //   if (disconnect) {
-    //     try {
-    //       this.failedDevice = this.devices[id].name;
-    //       try {
-    //         let modal = $('.modal');
-    //         // modal.modal({ backdrop: 'static', keyboard: false });
-    //         modal.modal('close');
-    //       } catch (error) {}
-    //       let modal = $('.modal');
-    //       // modal.modal({ backdrop: 'static', keyboard: false });
-    //       modal.modal('show');
-    //       this.devices[id].peripheral.disconnect();
-    //     } catch (error) {
-    //       console.error(error);
-    //     }
-    //     this.devices[id].loading = false;
-    //     this.devices[id].connected = false;
-    //   }
-    // }, 30000);
-    // try {
-    //   await this.devices[id].peripheral.connectAsync();
-    //   disconnect = false;
-    //   let aux_this = this;
-    //   const disconnectCallback = () => {
-    //     aux_this.devices[id].loading = false;
-    //     aux_this.devices[id].connected = false;
-    //   };
-    //   this.devices[id].peripheral.once('disconnect', disconnectCallback);
-    //   this.devices[id].loading = false;
-    //   this.devices[id].connected = true;
-    //   const { characteristics } = await this.devices[
-    //     id
-    //   ].peripheral.discoverAllServicesAndCharacteristicsAsync();
-    //   this.devices[id].characteristics = characteristics;
-    //   this.peripheralConnected(this.devices[id]);
-    //   for (let i = 0; i < characteristics.length; i++) {
-    //     if (characteristics[i].properties.includes('notify')) {
-    //       characteristics[i].notify(true);
-    //       characteristics[i].on('read', (data: Uint8Array) => {
-    //         this.appComponent.electron.ipcRenderer.sendSync(
-    //           'serial-device-read',
-    //           {
-    //             id: id,
-    //             data: data.toString(),
-    //           }
-    //         );
-    //       });
-    //     }
-    //   }
-    // } catch (error) {
-    //   this.devices[id].peripheral.disconnect();
-    // }
+    this.appComponent.electron.ipcRenderer.sendSync(
+      'connect-to-ble-device',
+      id
+    );
   }
 
   disconnectDevice(id: string) {
-    this.devices[id].peripheral.disconnect();
     this.appComponent.electron.ipcRenderer.sendSync('remove-serial-device', id);
-  }
-
-  async peripheralConnected(device: any) {
-    this.appComponent.electron.ipcRenderer.sendSync('begin-serial-device', {
-      id: device.id,
-      name: device.name,
-    });
-  }
-
-  sendToDevice(id: string, command: string) {
-    const utf8EncodeText = new TextEncoder();
-    for (let i = 0; i < this.devices[id].characteristics.length; i++) {
-      if (this.devices[id].characteristics[i].properties.includes('write')) {
-        this.devices[id].characteristics[i].write(
-          utf8EncodeText.encode(command),
-          false
-        );
-      }
-    }
   }
 
   getObjectKeys(object: any) {
