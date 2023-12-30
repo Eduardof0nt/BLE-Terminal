@@ -42,11 +42,8 @@ export class HomeComponent {
     this.appComponent.electron.ipcRenderer.on(
       'set-device-loading',
       (event: any, id: string, loading: boolean) => {
-        console.log(loading);
         aux_this.devices[id].loading = loading;
-        // aux_this.cdr.markForCheck();
         aux_this.cdr.detectChanges();
-        console.log(aux_this.devices[id]);
         return true;
       }
     );
@@ -94,10 +91,8 @@ export class HomeComponent {
   }
 
   async connectToDevice(id: string) {
-    new Promise((resolve, reject) => {
-      this.appComponent.electron.ipcRenderer.send('connect-to-ble-device', id);
-      resolve({});
-    });
+    // Async
+    this.appComponent.electron.ipcRenderer.send('connect-to-ble-device', id);
   }
 
   disconnectDevice(id: string) {
