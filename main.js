@@ -8,7 +8,7 @@ let appWin;
 let serialDevices = {};
 let bluetoothDevices = {};
 
-let prod = true;
+let prod = false;
 
 function deviceDiscovered(peripheral) {
   try {
@@ -287,7 +287,7 @@ createWindow = async () => {
       appWin.webContents.send('set-device-loading', id, false);
       bluetoothDevices[id].peripheral.disconnect();
     }
-    event.returnValue = true;
+    //event.returnValue = true;
   });
 
 
@@ -436,7 +436,7 @@ openSerialWindow = (device) => {
 
   serialWin.maximize();
 
-  serialDevices[device.id] = ({ window: serialWin.id, device: { id: device.id, name: device.advertisement.localName }, serialLog: [], ws: undefined, wsServer: undefined, wsClient: undefined });
+  serialDevices[device.id] = ({ window: serialWin.id, device: { id: device.id, name: bluetoothDevices[device].advertisement.localName || 'No Name' }, serialLog: [], ws: undefined, wsServer: undefined, wsClient: undefined });
 
 
   serialWin.loadURL(`file://${__dirname}/dist/index.html#/serial/${encodeURIComponent(JSON.stringify({ id: device.id, name: device.advertisement.localName }))}`);

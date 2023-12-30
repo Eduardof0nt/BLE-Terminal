@@ -94,10 +94,10 @@ export class HomeComponent {
   }
 
   async connectToDevice(id: string) {
-    this.appComponent.electron.ipcRenderer.sendSync(
-      'connect-to-ble-device',
-      id
-    );
+    new Promise((resolve, reject) => {
+      this.appComponent.electron.ipcRenderer.send('connect-to-ble-device', id);
+      resolve({});
+    });
   }
 
   disconnectDevice(id: string) {
