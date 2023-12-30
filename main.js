@@ -3,15 +3,15 @@ const { exec } = require("child_process");
 const sudo = require('sudo-prompt');
 const noble = require("@abandonware/noble");
 const ws = require('ws');
-const { checkPortStatus } = require("portscanner");
-
 
 let appWin;
 let serialDevices = {};
 let bluetoothDevices = {};
+
+let prod = true;
+
 function deviceDiscovered(peripheral) {
   try {
-    // console.log(peripheral);
     if (bluetoothDevices[peripheral['id']]) {
       bluetoothDevices[peripheral['id']] = { ...peripheral, peripheral: bluetoothDevices[peripheral['id']].peripheral, loading: bluetoothDevices[peripheral['id']].loading };
     }
@@ -20,7 +20,6 @@ function deviceDiscovered(peripheral) {
     }
 
   } catch (error) { }
-  //console.log(aux_this.bluetoothDevices);
 }
 noble.on('discover', deviceDiscovered);
 noble.startScanning();
@@ -86,6 +85,8 @@ function newWebSocket(port) {
 createWindow = async () => {
   let platform = process.platform;
 
+  console.log(prod);
+
   appWin = new BrowserWindow({
     width: 400,
     height: 400,
@@ -101,7 +102,9 @@ createWindow = async () => {
 
   appWin.setMenu(null);
 
-  appWin.webContents.openDevTools();
+  if (!prod) {
+    appWin.webContents.openDevTools();
+  }
 
   appWin.loadURL(`file://${__dirname}/dist/index.html#/loading`);
 
@@ -128,20 +131,6 @@ createWindow = async () => {
           });
         }
         else {
-          // if (stdout.split("\n")[0].split("Power: ")[1] != "1") {
-          //     exec("blueutil -p 1", (error, stdout, stderr) => {
-          //         if (error) {
-          //             console.log(`error: ${error.message}`);
-          //             app.quit();
-          //             reject();
-          //         }
-          //         if (stderr) {
-          //             console.log(`stderr: ${stderr}`);
-          //             reject();
-          //         }
-          //         resolve();
-          //     });
-          // }
           resolve();
         }
       });
@@ -221,7 +210,6 @@ createWindow = async () => {
           rssi: bluetoothDevices[device].rssi,
           loading: bluetoothDevices[device].loading,
           connected: bluetoothDevices[device].connected,
-          // serial: bluetoothDevices[device].serial,
         };
       }
     }
@@ -248,7 +236,6 @@ createWindow = async () => {
     try {
       await bluetoothDevices[id].peripheral.connectAsync();
       disconnect = false;
-      // appWin.webContents.send('set-device-loading', { id: id,loading:false });
       const disconnectCallback = () => {
         bluetoothDevices[id].loading = false;
         appWin.webContents.send('set-device-loading', id, false);
@@ -349,7 +336,6 @@ createWindow = async () => {
 
   ipcMain.on('init-ws', (event, id, port, wsAuth, wsUser, wsPassword) => {
     let webSocketServer = newWebSocket(port);
-    // console.log(webSocketServer);
     serialDevices[id].wsServer = webSocketServer;
     serialDevices[id].wsClient = undefined;
     webSocketServer.on(
@@ -458,7 +444,9 @@ openSerialWindow = (device) => {
 
   serialWin.setMenu(null);
 
-  serialWin.webContents.openDevTools();
+  if (!prod) {
+    serialWin.webContents.openDevTools();
+  }
 
   serialWin.on("closed", () => {
     try {

@@ -16,8 +16,6 @@ export class SerialComponent {
   recording: boolean = false;
   autoscroll: boolean = false;
   websocketEnabled: boolean = false;
-  // websocketServer: any;
-  // ws: any;
   wsPort: number = 8080;
   checkingPort: boolean = false;
   portError: boolean = false;
