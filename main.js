@@ -287,13 +287,6 @@ createWindow = async () => {
                 }
               }
               BrowserWindow.fromId(serialDevices[id].window).webContents.send('update-data', serialDevices[id].serialLog);
-              // this.appComponent.electron.ipcRenderer.sendSync(
-              //   'serial-device-read',
-              //   {
-              //     id: id,
-              //     data: data.toString(),
-              //   }
-              // );
             });
           }
         }
@@ -312,15 +305,6 @@ createWindow = async () => {
 
 
   // Serial
-
-  // ipcMain.on('get-serial-devices', (event) => {
-  //   event.returnValue = serialDevices;
-  // });
-
-  // ipcMain.on('begin-serial-device', (event, device) => {
-  //   openSerialWindow(device);
-  //   event.returnValue = true;
-  // });
 
   ipcMain.on('remove-serial-device', (event, id) => {
     try {
@@ -367,6 +351,7 @@ createWindow = async () => {
     let webSocketServer = newWebSocket(port);
     // console.log(webSocketServer);
     serialDevices[id].wsServer = webSocketServer;
+    serialDevices[id].wsClient = undefined;
     webSocketServer.on(
       'connection',
       function connection(ws, request) {
@@ -380,7 +365,6 @@ createWindow = async () => {
               wsPassword == password))
         ) {
           ws.on('error', console.error);
-          // aux_this.ws = ws;
           serialDevices[id].ws = ws;
           serialDevices[id].wsClient = request.client;
           request.client.on('close', function () {
@@ -398,7 +382,6 @@ createWindow = async () => {
         } else {
           request.client.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
           request.client.destroy();
-          //aux_this.wsClientConnected = false;
         }
 
         // ws.send('something');
