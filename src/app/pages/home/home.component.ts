@@ -11,6 +11,8 @@ export class HomeComponent {
   @Input() devices: any = {};
   keepReloading = true;
   failedDevice: string = '';
+  searchString: string = '';
+
   constructor(
     private appComponent: AppComponent,
     private cdr: ChangeDetectorRef
@@ -70,13 +72,23 @@ export class HomeComponent {
       {}
     );
     for (let device of Object.keys(devices)) {
-      aux_this.devices[device] = {
-        name: devices[device].name,
-        id: devices[device].id,
-        rssi: devices[device].rssi,
-        loading: devices[device].loading,
-        connected: devices[device].connected,
-      };
+      if (
+        devices[device].name
+          .toLowerCase()
+          .indexOf(this.searchString.toLowerCase()) > -1 ||
+        device.toLowerCase().indexOf(this.searchString.toLowerCase()) > -1 ||
+        this.searchString == ''
+      ) {
+        aux_this.devices[device] = {
+          name: devices[device].name,
+          id: devices[device].id,
+          rssi: devices[device].rssi,
+          loading: devices[device].loading,
+          connected: devices[device].connected,
+        };
+      } else {
+        delete aux_this.devices[device];
+      }
     }
     this.cdr.detectChanges();
   }

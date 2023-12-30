@@ -3,6 +3,19 @@
     <button type="button" class="btn btn-light" (click)="resetDeviceList()">
       <img src="assets/images/refresh-cw.svg" />
     </button>
+
+    <div class="text-search">
+      <input
+        class="searchBar"
+        placeholder=" Search by name or address"
+        type="text"
+        [(ngModel)]="searchString"
+      />
+    </div>
+
+    <button type="button" class="btn btn-light" [hidden]="true">
+      <img src="assets/images/refresh-cw.svg" />
+    </button>
   </div>
   <div class="table-container">
     <table>

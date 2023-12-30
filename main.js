@@ -85,7 +85,7 @@ function newWebSocket(port) {
 createWindow = async () => {
   let platform = process.platform;
 
-  console.log(prod);
+  console.log('Production: ' + prod);
 
   appWin = new BrowserWindow({
     width: 400,
@@ -436,7 +436,7 @@ openSerialWindow = (device) => {
 
   serialWin.maximize();
 
-  serialDevices[device.id] = ({ window: serialWin.id, device: { id: device.id, name: bluetoothDevices[device].advertisement.localName || 'No Name' }, serialLog: [], ws: undefined, wsServer: undefined, wsClient: undefined });
+  serialDevices[device.id] = ({ window: serialWin.id, device: { id: device.id, name: device.advertisement.localName || 'No Name' }, serialLog: [], ws: undefined, wsServer: undefined, wsClient: undefined });
 
 
   serialWin.loadURL(`file://${__dirname}/dist/index.html#/serial/${encodeURIComponent(JSON.stringify({ id: device.id, name: device.advertisement.localName }))}`);

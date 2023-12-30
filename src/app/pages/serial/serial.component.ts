@@ -24,6 +24,7 @@ export class SerialComponent {
   wsUser: string = '';
   wsPassword: string = '';
   command: string = '';
+  separator: string = '';
 
   constructor(
     private appComponent: AppComponent,
@@ -159,6 +160,12 @@ export class SerialComponent {
     this.appComponent.electron.ipcRenderer.sendSync('close-ws', this.device.id);
   }
 
+  openExportModal() {
+    let modal = $('#export-data-modal');
+    // modal.modal({ backdrop: 'static', keyboard: false });
+    modal.modal('show');
+  }
+
   exportData() {
     let fileName = 'data.csv';
     let fileContents = 'timestamp,data';
@@ -167,7 +174,12 @@ export class SerialComponent {
     });
 
     for (let row of data) {
-      fileContents = fileContents + '\n' + row.timestamp + ',' + row.data;
+      fileContents =
+        fileContents +
+        '\n' +
+        row.timestamp +
+        this.separator +
+        row.data.replaceAll('\n', '\\n');
     }
 
     const file = new Blob([fileContents], { type: 'text/csv;charset=utf-8' });

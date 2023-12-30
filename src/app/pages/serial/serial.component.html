@@ -20,7 +20,7 @@
     </div>
 
     <div>
-      <button type="button" class="btn btn-primary" (click)="exportData()">
+      <button type="button" class="btn btn-primary" (click)="openExportModal()">
         Export Data
       </button>
       <button
@@ -161,6 +161,39 @@
           data-bs-dismiss="modal"
         >
           Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" tabindex="-1" id="export-data-modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Export data to CSV</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div>Separator:</div>
+        <input type="text" [(ngModel)]="separator" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="exportData()"
+          data-bs-dismiss="modal"
+        >
+          Export
         </button>
       </div>
     </div>

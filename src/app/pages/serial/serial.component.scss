@@ -121,3 +121,19 @@
     }
   }
 }
+
+#export-data-modal {
+  .modal-dialog {
+    .modal-content {
+      .modal-body {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        input {
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+}
