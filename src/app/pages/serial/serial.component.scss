@@ -25,7 +25,7 @@
       border: 1px solid black;
     }
     table {
-      width: 100%;
+      width: 100vw;
       max-height: 100%;
       thead {
         background-color: white;
@@ -35,7 +35,7 @@
         text-align: center;
         tr {
           .time {
-            width: 200px;
+            width: 300px;
           }
           .data {
             width: auto;
@@ -43,18 +43,24 @@
         }
       }
       tbody {
+        max-width: 100%;
         .recording {
+          max-width: 100%;
           background-color: rgba(0, 128, 0, 0.563);
         }
         tr {
+          max-width: 100%;
           td {
-            padding: 5px;
-            .time {
-              text-align: center;
-            }
-            .data {
-              text-overflow: ellipsis;
-            }
+            max-width: 100%;
+            padding: 10px;
+          }
+          .time {
+            text-align: center;
+          }
+          .data {
+            max-width: 0;
+            overflow-x: scroll;
+            white-space: nowrap;
           }
         }
       }

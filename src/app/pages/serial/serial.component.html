@@ -45,27 +45,17 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of data" [ngClass]="{ recording: row.recording }">
+        <tr
+          *ngFor="let row of data; let i = index"
+          [ngClass]="{ recording: row.recording }"
+        >
           <td class="time">{{ row.timestampString }}</td>
-          <td style="text-overflow: ellipsis">{{ row.data }}</td>
+          <td class="data">
+            {{ row.data }}
+          </td>
         </tr>
       </tbody>
     </table>
-
-    <!-- <table>
-      <tr>
-        <th style="width: 200px">Timestamp</th>
-        <th>Data</th>
-      </tr>
-      <tr *ngFor="let row of data">
-        <td>
-          {{ row.timestamp }}
-        </td>
-        <td>
-          {{ row.data }}
-        </td>
-      </tr>
-    </table> -->
   </div>
   <div class="data-send-container">
     <input type="text" [(ngModel)]="command" (keydown.enter)="sendCommand()" />

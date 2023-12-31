@@ -190,4 +190,11 @@ export class SerialComponent {
     link.click();
     link.remove();
   }
+
+  // checkOverflow(id: number) {
+  //   return (
+  //     $('tbody > tr > td.data')[id].scrollWidth - 1 >
+  //     $('tbody > tr > td.data').eq(id).innerWidth()
+  //   );
+  // }
 }
