@@ -25,6 +25,8 @@ export class SerialComponent {
   wsPassword: string = '';
   command: string = '';
   separator: string = '';
+  leftArrows: any = {};
+  rightArrows: any = {};
 
   constructor(
     private appComponent: AppComponent,
@@ -196,5 +198,19 @@ export class SerialComponent {
   //     $('tbody > tr > td.data')[id].scrollWidth - 1 >
   //     $('tbody > tr > td.data').eq(id).innerWidth()
   //   );
+  // }
+
+  // onScroll(id: any) {
+  //   if ($('tbody > tr > td.data').eq(id).scrollLeft() > 0) {
+  //     this.leftArrows[id] = true;
+  //   }
+  //   // console.log($('tbody > tr > td.data').eq(id));
+  //   console.log(
+  //     $('tbody > tr > td.data').eq(id).scrollLeft() +
+  //       $('tbody > tr > td.data').eq(id).innerWidth() +
+  //       1
+  //   );
+  //   console.log($('tbody > tr > td.data').eq(id).innerWidth() + 1);
+  //   console.log($('tbody > tr > td.data')[id].scrollWidth);
   // }
 }
