@@ -116,7 +116,10 @@ createWindow = async () => {
       exec("clang --version", (error, stdout, stderr) => {
         if (error) {
           console.log(`error: ${error.message}`);
-          exec("xcode-select --install", (error, stdout, stderr) => {
+          sudo.exec("xcode-select --install", {
+            name: 'BLE Terminal',
+            //icns: '/path/to/icns/file', // (optional)
+          }, (error, stdout, stderr) => {
             if (error) {
               console.log(`error: ${error.message}`);
               app.quit();
