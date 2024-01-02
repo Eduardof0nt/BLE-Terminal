@@ -95,7 +95,8 @@ createWindow = async () => {
     webPreferences: {
       // devTools: false,
       contextIsolation: false,
-      nodeIntegration: true
+      nodeIntegration: true,
+      webSecurity: false //Needed for Angular when packing
     },
     address: 'Test'
   });
@@ -435,7 +436,8 @@ openSerialWindow = (device) => {
     webPreferences: {
       // devTools: false,
       contextIsolation: false,
-      nodeIntegration: true
+      nodeIntegration: true,
+      webSecurity: false
     },
   });
 

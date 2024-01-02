@@ -1,16 +1,36 @@
 {
   "name": "bluetooth-serial",
   "version": "1.0.0",
-  "main": "main.js",
+  "main": "electron-main.js",
   "scripts": {
     "ng": "ng",
     "start": "ng build --base-href ./ && electron .",
     "build": "ng build",
+    "dist": "ng build --base-href ./ && electron-builder",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "rebuild": "electron-rebuild -f"
+  },
+  "build": {
+    "appId": "electron-blog-example",
+    "dmg": {
+      "title": "${productName} ${version}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "build/icon.ico"
+    },
+    "directories": {
+      "output": "release/"
+    }
   },
   "private": true,
   "dependencies": {
@@ -42,6 +62,7 @@
     "@types/jasmine": "~4.3.0",
     "@types/throttle-debounce": "^5.0.0",
     "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
