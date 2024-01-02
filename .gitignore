@@ -129,3 +129,5 @@ dist
 # angular cache
 
 .angular
+
+.package-lock.json
