@@ -380,11 +380,13 @@ createWindow = async () => {
   });
 
   ipcMain.on('close-ws', (event, id) => {
-    serialDevices[id].ws = undefined;
-    serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
-    serialDevices[id].wsClient.destroy();
+    if (serialDevices[id].wsClient) {
+      serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+      serialDevices[id].wsClient.destroy();
+    }
     serialDevices[id].wsServer.close();
     serialDevices[id].wsServer = undefined;
+    serialDevices[id].ws = undefined;
     serialDevices[id].wsClient = undefined;
     event.returnValue = true;
   });
