@@ -10,8 +10,6 @@ let bluetoothDevices = {};
 
 let prod = true;
 
-//app.commandLine.appendSwitch("dev");
-
 function deviceDiscovered(peripheral) {
   try {
     if (bluetoothDevices[peripheral['id']]) {
@@ -88,7 +86,7 @@ createWindow = async () => {
   let platform = process.platform;
 
   try {
-    prod = !(process.argv.includes('dev'));
+    prod = !(process.argv.includes('--dev'));
   } catch (error) {
     console.error(error)
   }
@@ -169,7 +167,6 @@ createWindow = async () => {
           });
         }
         else {
-          // console.log(stdout);
           resolve();
         }
       });
@@ -299,7 +296,6 @@ createWindow = async () => {
       appWin.webContents.send('set-device-loading', id, false);
       bluetoothDevices[id].peripheral.disconnect();
     }
-    //event.returnValue = true;
   });
 
 
@@ -378,12 +374,9 @@ createWindow = async () => {
             serialDeviceWrite(id, dataString);
           });
         } else {
-          // request.client.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
           serialDevices[id].ws.send('HTTP/1.1 503 Service Unavailable\r\n\r\n');
           request.client.destroy();
         }
-
-        // ws.send('something');
       }
     );
     event.returnValue = true;
@@ -391,7 +384,6 @@ createWindow = async () => {
 
   ipcMain.on('close-ws', (event, id) => {
     if (serialDevices[id].wsClient) {
-      // serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
       serialDevices[id].ws.send('HTTP/1.1 503 Service Unavailable\r\n\r\n');
       serialDevices[id].wsClient.destroy();
     }

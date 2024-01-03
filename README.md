@@ -4,7 +4,7 @@ This project run with Angular and Electron. It's capable of compiling and runnin
 
 ## Development server
 
-Run `npm start` or `npm start dev` for a developer mode (showing web tools). Run `npm start prod` for production test.
+Run `npm start` or `npm run dev` for a developer mode (showing web tools). Run `npm run prod` for production test.
 
 ## Build
 
