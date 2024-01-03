@@ -8,7 +8,9 @@ let appWin;
 let serialDevices = {};
 let bluetoothDevices = {};
 
-let prod = false;
+let prod = true;
+
+//app.commandLine.appendSwitch("dev");
 
 function deviceDiscovered(peripheral) {
   try {
@@ -85,12 +87,18 @@ function newWebSocket(port) {
 createWindow = async () => {
   let platform = process.platform;
 
+  try {
+    prod = !(process.argv.includes('dev'));
+  } catch (error) {
+    console.error(error)
+  }
+
   console.log('Production: ' + prod);
 
   appWin = new BrowserWindow({
     width: 400,
     height: 400,
-    title: "Laboratory Blutooth Data Logger",
+    title: "BLE Terminal",
     resizable: true,
     webPreferences: {
       // devTools: false,
@@ -370,7 +378,8 @@ createWindow = async () => {
             serialDeviceWrite(id, dataString);
           });
         } else {
-          request.client.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+          // request.client.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+          serialDevices[id].ws.send('HTTP/1.1 503 Service Unavailable\r\n\r\n');
           request.client.destroy();
         }
 
@@ -382,7 +391,8 @@ createWindow = async () => {
 
   ipcMain.on('close-ws', (event, id) => {
     if (serialDevices[id].wsClient) {
-      serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+      // serialDevices[id].wsClient.write('HTTP/1.1 503 Service Unavailable\r\n\r\n');
+      serialDevices[id].ws.send('HTTP/1.1 503 Service Unavailable\r\n\r\n');
       serialDevices[id].wsClient.destroy();
     }
     serialDevices[id].wsServer.close();

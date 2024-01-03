@@ -1,12 +1,17 @@
 {
   "name": "bluetooth-serial",
+  "productName": "BLE Terminal",
   "version": "1.0.0",
   "main": "electron-main.js",
   "scripts": {
     "ng": "ng",
-    "start": "ng build --base-href ./ && electron .",
+    "start": "ng build --base-href ./ && electron . --dev",
+    "dev": "ng build --base-href ./ && electron . --dev",
+    "prod": "ng build --base-href ./ && electron .",
     "build": "ng build",
-    "dist": "ng build --base-href ./ && electron-builder",
+    "dist": "ng build --base-href ./ && electron-builder --dev",
+    "distDev": "ng build --base-href ./ && electron-builder --dev",
+    "distProd": "ng build --base-href ./ && electron-builder",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
@@ -14,7 +19,7 @@
     "rebuild": "electron-rebuild -f"
   },
   "build": {
-    "appId": "electron-blog-example",
+    "appId": "ble-terminal",
     "dmg": {
       "title": "${productName} ${version}"
     },
