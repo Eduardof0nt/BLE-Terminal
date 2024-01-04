@@ -19,54 +19,58 @@
   </div>
   <div class="table-container">
     <table>
-      <tr>
-        <th>Number</th>
-        <th>Name</th>
-        <th>Address</th>
-        <th>Rssi</th>
-        <th></th>
-      </tr>
-      <tr *ngFor="let device of getObjectKeys(devices); let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ devices[device].name }}</td>
-        <td>{{ devices[device].id }}</td>
-        <td>{{ devices[device].rssi }}</td>
-        <td
-          style="
-            display: flex;
-            width: 150px;
-            align-items: center;
-            justify-content: flex-start;
-          "
-        >
-          <button
-            type="button"
-            class="btn btn-primary"
-            [disabled]="devices[device].loading"
-            *ngIf="!devices[device].connected && !devices[device].serial"
-            (click)="connectToDevice(devices[device].id)"
+      <thead>
+        <tr>
+          <th>Number</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Rssi</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let device of getObjectKeys(devices); let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ devices[device].name }}</td>
+          <td>{{ devices[device].id }}</td>
+          <td>{{ devices[device].rssi }}</td>
+          <td
+            style="
+              display: flex;
+              width: 150px;
+              align-items: center;
+              justify-content: flex-start;
+            "
           >
-            Connect
-          </button>
-          <button
-            type="button"
-            class="btn btn-warning"
-            *ngIf="devices[device].connected"
-            (click)="disconnectDevice(devices[device].id)"
-          >
-            Disconnect
-          </button>
-          <!-- Fix -->
-          <div
-            *ngIf="devices[device].loading"
-            class="spinner-border"
-            role="status"
-            style="margin-left: 5px"
-          >
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </td>
-      </tr>
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="devices[device].loading"
+              *ngIf="!devices[device].connected && !devices[device].serial"
+              (click)="connectToDevice(devices[device].id)"
+            >
+              Connect
+            </button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              *ngIf="devices[device].connected"
+              (click)="disconnectDevice(devices[device].id)"
+            >
+              Disconnect
+            </button>
+            <!-- Fix -->
+            <div
+              *ngIf="devices[device].loading"
+              class="spinner-border"
+              role="status"
+              style="margin-left: 5px"
+            >
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
   <div class="bottom-container"></div>

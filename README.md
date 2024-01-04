@@ -1,10 +1,12 @@
 # BLE Terminal
 
-This project run with Angular and Electron. It's capable of compiling and running in both Windows, Linux and Macos.
+This project run with Angular and Electron. It's capable of compiling and running in both Windows, Linux and Macos. Run `npm install --force` to install dependencies.
 
 ## Development server
 
-Run `npm start` or `npm run dev` for a developer mode (showing web tools). Run `npm run prod` for production test.
+Run `npm start` or `npm run dev` for a developer mode (showing web tools). Run `npm run prod` for production test. In case of error, try deleting the `node_modules` folder and running `npm cache clean --force` to clear cache before running `npm install --force` again.
+
+If you get a `NODE_MODULE_VERSION` error, run `npm rebuild` to rebuild the node modules for the current version.
 
 ## Build
 
